@@ -1,0 +1,16 @@
+## Reference 1 "https://cloud.google.com/storage/docs/json_api/v1/buckets"
+
+## Reference 2 "https://cloud.google.com/deployment-manager/docs/configuration/supported-resource-types"
+
+## Reference 3 "https://medium.com/google-cloud/infrastructure-as-code-on-google-cloud-platform-storage-buckets-40f09bfa4328"
+
+{% set BUCKET = env["name"] + "-" + env["deployment"] %} #Statement that sets a name for the bucket
+resources:
+- name: {{ BUCKET }} #Name for the bucket
+  type: storage.v1.bucket #Using the resource type to create a bucket
+  properties:
+    storageClass: STANDARD #Sets a storage class to the bucket
+    location: EU #The location of the bucket
+    acl: #Access Control List that gives permissions to the SSQL
+    - role: OWNER
+      entity: "project-owners-123412341234"

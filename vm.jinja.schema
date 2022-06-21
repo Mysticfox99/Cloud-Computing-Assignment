@@ -1,0 +1,41 @@
+info:
+title: vm schema
+author: Ernestas Milinskas
+version: 1.0
+
+imports: #Import the jinja files
+- path: vm.jinja
+
+required:
+- zone
+- count
+- network
+- subnetwork
+- sourceImage
+- machineType
+
+
+properties:
+  zone:
+    type: string
+    description: The zone where the VM will run in
+  
+  count:
+    type: integer
+    description: The number of VM's to be created
+  
+  network:
+    type: string
+    description: The network that will be applied to the VM's
+  
+  subnetwork:
+    type: string
+    description: The sub-network that will be applied to the VM's
+  
+  sourceImage:
+    type: string
+    description: The OS that will be applied to the VM's
+
+  machineType:
+    type: string
+    description: The hardware resource that will be applied to the VM's

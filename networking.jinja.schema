@@ -1,0 +1,25 @@
+info:
+title: network schema
+author: Ernestas Milinskas
+version: 1.0
+
+imports:
+- path: networking.jinja
+
+required:
+- ipCidrRange
+- region
+- IPProtocol
+
+properties:
+  ipCidrRange:
+    type: string
+    description: The range of addresses which the subnet has
+  
+  region:
+    type: string
+    description: The region where the subnet is created in
+  
+  IPProtocol:
+    type: string
+    description: The forward protocol for the subnet

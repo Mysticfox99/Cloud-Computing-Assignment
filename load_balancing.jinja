@@ -1,0 +1,58 @@
+# Reference 1: "https://cloud.google.com/compute/docs/reference/rest/v1/autoscalers"
+
+# Reference 2: "https://codeblog.dotsandbrackets.com/internal-load-balancer/"
+
+# Reference 3: "https://github.com/GoogleCloudPlatform/deploymentmanager-samples/blob/master/examples/v2/nodejs/jinja/frontend.jinja"
+
+{% set DEPLOYMENT = env["name"] + "-" + env["deployment"]%}
+resources:
+- name: {{env["name"]}}-instance-template
+  type: compute.v1.instanceTemplate
+  properties:
+    properties:
+      machineType: {{ properties["machineType"] }}
+      disks:
+      - type: PERSISTENT
+        deviceName: boot
+        boot: true
+        autoDelete: true
+        initializeParams:
+          sourceImage: {{ properties["sourceImage"] }}
+      networkInterfaces:
+        - accessConfigs:
+          - name: External-IP
+            type: ONE_TO_ONE_NAT
+          network: {{ properties["network"] }} 
+
+- name: {{DEPLOYMENT}}
+  type: compute.v1.regionInstanceGroupManager
+  properties:
+    instanceTemplate: $(ref.{{env["name"]}}-instance-template.selfLink)
+    region: {{ properties['region'] }}
+    targetSize: {{ properties['targetSize'] }}
+
+- name: {{ env["name"] }}-autoscaler
+  type: compute.v1.regionAutoscalers
+  properties:   
+    region: {{ properties['region'] }}
+    target: $(ref.{{DEPLOYMENT}}.selfLink)
+    autoscalingPolicy:
+      maxNumReplicas: {{ properties['maxSize'] }}
+
+- name: {{env["name"]}}-healthcheck
+  type: compute.v1.healthCheck
+  properties:
+    type: TCP
+    tcpHealthCheck:
+      port: 80
+
+- name: {{env["name"]}}-backend-service
+  type: compute.v1.regionBackendService
+  properties:
+    region: {{ properties['region'] }}
+    protocol: TCP
+    loadBalancingScheme: INTERNAL
+    healthChecks:
+    - $(ref.{{env["name"]}}-healthcheck.selfLink)
+    backends:
+    - group: $(ref.{{DEPLOYMENT}}.instanceGroup)   

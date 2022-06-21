@@ -1,0 +1,40 @@
+info:
+title: vpn schema
+author: Ernestas Milinskas
+version: 1.0
+
+imports:
+- path: vpn.jinja
+
+required:
+- network
+- region
+- sharedSecret
+- peerIp
+- priority
+- destRange
+
+properties:
+  network:
+    type: string
+    description: The network which the VPN is applied to
+  
+  region:
+    type: string
+    description: The region where the VPN is created in
+  
+  sharedSecret:
+    type: string
+    description: Hidden secret used for the VPN
+  
+  peerIp:
+    type: string
+    description: IP4V address of the VPN
+
+  priority:
+    type: integer
+    description: The priority of the route of the VPN
+  
+  destRange:
+    type: string
+    description: The destination range of the route of the VPN

@@ -1,0 +1,77 @@
+## Reference 1: "https://derekfoster1976.github.io/CMP2808M/workshop3.html"
+
+## Reference 2: "https://derekfoster1976.github.io/CMP2808M/workshop4.html"
+
+## Reference 3: "https://cloud.google.com/deployment-manager/docs/configuration/supported-resource-types"- used for all the instance-types
+
+imports: #Import the jinja files
+- path: vm.jinja
+- path: bucket.jinja
+- path: sql.jinja
+- path: networking.jinja
+- path: vpn.jinja
+- path: load_balancing.jinja
+
+## Virtual-Machine Instances
+resources:
+- name: vm-windows #Name for the windows vm
+  type: vm.jinja #Calling the vm.jinja file for the configuration of the virtual-machine
+  properties:
+    zone: europe-west2-b #Location where the VM runs in
+    count: 1 #Input for how many VM's to make
+    network: $(ref.network.selfLink) #Connect vm to the network
+    subnetwork: $(ref.network-subnetwork1.selfLink) #Connect vm to the subnetwork
+    sourceImage: projects/windows-cloud/global/images/family/windows-2019 #The OS that the VM is going to run
+    machineType: n1-standard-1 #type of hardware resources assigned to the VM
+
+- name: vm-debian #Name for the debian vm
+  type: vm.jinja #Calling the vm.jinja file for the configuration of the virtual-machine
+  properties:
+    zone: europe-west3-b
+    count: 1
+    network: $(ref.network.selfLink)
+    subnetwork: $(ref.network-subnetwork2.selfLink)
+    sourceImage: projects/debian-cloud/global/images/family/debian-9
+    machineType: n1-standard-1
+
+## Bucket
+- name: 19696934-bucket
+  type: bucket.jinja #Calling the bucket.jinja file for the configuration of the bucket
+
+#"https://stackoverflow.com/questions/51152743/how-to-create-mysql-database-with-user-and-password-in-google-cloud-platform-usi"
+- name: sql
+  type: sql.jinja #Calling the sql.jinja file for the configuration of the sql database and instance
+  properties:
+    tier: db-g1-small #The machine type for the database instance
+    network: $(ref.network.selfLink) #Connect database to the network
+    subnetwork: $(ref.network-subnetwork3.selfLink) #Connect database to the subnetwork
+
+## Networking
+- name: network 
+  type: networking.jinja #Calling the networking.jinja file for the configuration of the network, subnetworks and firewall
+  properties:
+    ipCidrRange: 10.1.0.0/16 #The range of addresses which the subnets have
+    region: europe-west2
+    IPProtocol: TCP #The forward protocol for the subnets
+
+## VPN
+- name: vpn
+  type: vpn.jinja #Calling the vpn.jinja file for the configuration of the vpn
+  properties:
+    network: $(ref.network.selfLink) #Connect the VPN to the network
+    region: europe-west2
+    sharedSecret: Vpnsecret #Shared secret used for the communication between the peer and VPN
+    peerIp: 1.2.3.4 #IP4V address of the VPN
+    priority: 1000 #The priority of the route of the VPN
+    destRange: 0.0.0.0 #The destination range of the route of the VPN
+
+##LOAD-BALANCER
+- name: load-balancing
+  type: load_balancing.jinja
+  properties:
+    machineType: n1-standard-1
+    sourceImage: projects/windows-cloud/global/images/family/windows-2019
+    region: europe-west2
+    network: global/networks/default
+    targetSize: 2
+    maxSize: 3

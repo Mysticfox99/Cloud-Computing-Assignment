@@ -1,0 +1,62 @@
+##Reference 1 "https://github.com/GoogleCloudPlatform/deploymentmanager-samples/blob/master/examples/v2/vpn_auto_subnet/vpn-auto-subnet.jinja"
+
+##Reference 2 "https://github.com/GoogleCloudPlatform/deploymentmanager-samples/blob/master/google/resource-snippets/compute-v1/vpn_tunnel.jinja"
+
+resources:
+## Static IP
+- name: {{env["name"]}}-static-ip #Name for the static ip
+  type: compute.v1.address #Using the resource type to create a static ip
+  properties:
+    region: {{ properties["region"] }}
+
+## VPN gateway
+- name: {{ env["name"] }}-gateway #Name for the VPN gateway
+  type: compute.v1.targetVpnGateway #Using the resource type to create a VPN gateway
+  properties:
+    network: {{ properties["network"] }} #Attach the gateway to the network
+    region: {{ properties["region"] }} #Use template properties so the region from the YAML file is used
+
+##VPN ESP RULES
+- name: {{env["name"]}}-esp-rule #Name for the vpn forwarding rules
+  type: compute.v1.forwardingRules #Using the resource type to create forwarding rules
+  properties:
+    IPProtocol: ESP #Sets ruless for the protocol specified
+    IPAddress: $(ref.{{env["name"]}}-static-ip.address) #Reference for the IP to the static IP created at the beginning of the jinja template
+    region: {{ properties["region"] }} #Use template properties so the region from the YAML file is used
+    target: $(ref.{{ env["name"] }}-gateway.selfLink) #Link to the VPNN gatewway
+
+- name: {{env["name"]}}-udp500-rule
+  type: compute.v1.forwardingRules
+  properties:
+    IPProtocol: UDP #Sets ruless for the protocol specified
+    IPAddress: $(ref.{{env["name"]}}-static-ip.address) #Reference for the IP to the static IP created at the beginning of the jinja template
+    portRange: 500 #Packets in the ports specified range get forwarded to the target
+    region: {{ properties["region"] }} #Use template properties so the region from the YAML file is used
+    target: $(ref.{{ env["name"] }}-gateway.selfLink) #Link to the VPNN gatewway
+
+- name: {{env["name"]}}-udp4500-rule
+  type: compute.v1.forwardingRules
+  properties:
+    IPProtocol: UDP #Sets ruless for the protocol specified
+    IPAddress: $(ref.{{env["name"]}}-static-ip.address) #Reference for the IP to the static IP created at the beginning of the jinja template
+    portRange: 4500 #Packets in the ports specified range get forwarded to the target
+    region: {{ properties["region"] }} #Use template properties so the region from the YAML file is used
+    target: $(ref.{{ env["name"] }}-gateway.selfLink) #Link to the VPNN gatewway
+
+- name: {{env["name"]}}-tunnel #Name for the vpn tunnel
+  type: compute.v1.vpnTunnel #Using the resource type to create a vpn tunnel
+  properties:
+    region: {{ properties["region"] }} #Use template properties so the region from the YAML file is used
+    forwardingRule: $(ref.{{env["name"]}}-udp4500-rule.selfLink) #Attach to the desired forwarding rule
+    sharedSecret: {{ properties["sharedSecret"] }} #Used to secure a session between cloud VPN and peer VPN
+    peerIp: {{ properties["peerIp"] }} #IP address of peer VPN
+    targetVpnGateway: $(ref.{{ env["name"] }}-gateway.selfLink) #Link to the VPNN gatewway
+    localTrafficSelector: ["0.0.0.0/0"] #Used to establish the VPN tunner with peer VPN
+
+- name: {{env["name"]}}-route #Name for the vpn route
+  type: compute.v1.route #Using the resource type to create a vpn route
+  properties:
+    destRange: {{ properties["destRange"] }} #The destination range of the route of the VPN
+    nextHopVpnTunnel: $(ref.{{env["name"]}}-tunnel.selfLink) #Attach VPN route to VPN tunnel
+    network: {{ properties["network"] }} #Attach the VPN route to the network
+    priority: {{ properties["priority"] }} #The priority of the route of the VPN

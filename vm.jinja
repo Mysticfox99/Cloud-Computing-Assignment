@@ -1,0 +1,28 @@
+## Reference 1 "https://derekfoster1976.github.io/CMP2808M/workshop3.html"
+
+## Reference 2 "https://derekfoster1976.github.io/CMP2808M/workshop4.html"
+
+## Reference 3 "https://github.com/GoogleCloudPlatform/deploymentmanager-samples/blob/master/examples/v2/instance_pool/jinja/instance-pool.jinja"
+
+resources:
+{% for index in range(1, properties['count'] + 1) %} #A for-loop that loops the code over to create a number of VM's based on the count"
+{% set NAME = env["name"] + '-' +  env["deployment"] + '-vm' + index|string %}  #Statement that sets a name for the sql instance
+- name: {{NAME }} #Name of the VM
+  type: compute.v1.instance #Name of the VM instance
+  properties:
+    zone: {{ properties["zone"] }} #Use template properties so the zone from the YAML file is used
+    machineType: zones/{{ properties["zone"] }}/machineTypes/{{ properties["machineType"] }} #Combine multiple template properties to get the machineType
+    disks: #persistent disk for the VM
+    - deviceName: boot
+      type: PERSISTENT
+      boot: true
+      autoDelete: true
+      initializeParams:
+        sourceImage: {{ properties["sourceImage"] }} #The OS the Vm is gonna be using
+    networkInterfaces:
+    - network: {{ properties["network"] }} #Apply the network to the V
+      subnetwork: {{ properties["subnetwork"] }} #Apply the subnetwork to the V
+      accessConfigs:
+      - name: External NAT
+        type: ONE_TO_ONE_NAT
+{% endfor %}

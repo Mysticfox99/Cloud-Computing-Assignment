@@ -1,0 +1,38 @@
+## Reference 1 "https://google.qwiklabs.com/focuses/6430?catalog_rank=%7B%22rank%22%3A1%2C%22num_filters%22%3A0%2C%22has_search%22%3Atrue%7D&parent=catalog&search_id=3683751"
+
+resources:
+- name: {{ env["name"] }} #use deployment environment variables to use the name from the YAML file 
+  type: compute.v1.network #Using the resource type to create a network
+  properties:
+    routingMode: REGIONAL 
+    autoCreateSubnetworks: false
+
+- name: {{ env["name"] }}-subnetwork1 #use deployment environment variables to use the name from the YAML file and add subnetwork1 to it
+  type: compute.v1.subnetwork
+  properties:
+    ipCidrRange: {{ properties["ipCidrRange"] }} #Enables network-wide routing for the ssubnet to communicate
+    network: $(ref.{{ env["name"] }}.selfLink) #Link the subnet of the network created above
+    region: {{ properties["region"] }} #Use template properties so the region from the YAML file is used
+
+- name: {{ env["name"] }}-subnetwork2 #use deployment environment variables to use the name from the YAML file and add subnetwork2 to it
+  type: compute.v1.subnetwork
+  properties:
+    ipCidrRange: 10.11.0.0/16
+    network: $(ref.{{ env["name"] }}.selfLink)
+    region: europe-west3
+
+- name: {{ env["name"] }}-subnetwork3 #use deployment environment variables to use the name from the YAML file and add subnetwork3 to it
+  type: compute.v1.subnetwork
+  properties:
+    ipCidrRange: 10.12.0.0/16
+    network: $(ref.{{ env["name"] }}.selfLink)
+    region: europe-west4
+
+- name: {{ env["name"] }}-firewall #use deployment environment variables to use the name from the YAML file and add firewall to it
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.{{ env["name"] }}.selfLink) #Add a firewall to the network created
+    sourceRanges: ["0.0.0.0/0"] #This applies the firewall rule to the IP addresses in the specified range
+    allowed:
+    - IPProtocol: {{ properties["IPProtocol"] }} #Required when creating a firewall rule so it sets ruless for the protocol specified
+      ports: ["80"] #Assigns the ruless to the ports that have been specified

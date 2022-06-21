@@ -1,0 +1,26 @@
+info:
+title: sql schema
+author: Ernestas Milinskas
+version: 1.0
+
+imports:
+- path: sql.jinja
+
+required:
+- tier
+- network
+- subnetwork
+
+properties:
+  
+  tier:
+    type: string
+    description: The machine type for the database
+  
+  network:
+    type: string
+    description: The network that the database is connected to the database
+  
+  subnetwork:
+    type: string
+    description: The sub-network that the database is connected to the database

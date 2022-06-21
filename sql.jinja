@@ -1,0 +1,24 @@
+## Reference 1 "https://derekfoster1976.github.io/CMP2808M/workshop6.html"
+
+## Reference 2 "https://cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/databases"
+
+## Reference 3 "https://stackoverflow.com/questions/51152743/how-to-create-mysql-database-with-user-and-password-in-google-cloud-platform-usi"
+
+{% set SQLINSTANCE = env["name"] + "-" + env["deployment"] %} #Statement that sets a name for the sql instance
+resources:
+- name: {{SQLINSTANCE }} #Name of the database instance
+  type: sqladmin.v1beta4.instance #Using the resource type to create a database instance
+  properties:
+    rootPassword: 'password' #An initial root password
+    settings:
+      tier: {{ properties['tier'] }} #Use template properties so the tier from the YAML file is used
+
+- name: {{ SQLINSTANCE }}-database #Adding a string -database to the name
+  type: sqladmin.v1beta4.database #Using the resource type to create a database
+  properties:
+    name: database1 #Name of the database
+    instance: $(ref.{{ SQLINSTANCE }}.name) #Refer back to the SQL instance created above 
+    networkInterfaces:
+    - network: {{ properties["network"] }} #Connect the SQL database to the network 
+      subnetwork: {{ properties["subnetwork"] }} #Connect the SQL database to the subnetwork 
+
